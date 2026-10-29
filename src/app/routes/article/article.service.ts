@@ -289,7 +289,7 @@ const disconnectArticlesTags = async (slug: string) => {
 export const updateArticle = async (article: any, slug: string, id: number) => {
   let newSlug = null;
 
-  const existingArticle = await await prisma.article.findFirst({
+  const existingArticle = await prisma.article.findFirst({
     where: {
       slug,
     },
@@ -383,7 +383,7 @@ export const updateArticle = async (article: any, slug: string, id: number) => {
 };
 
 export const deleteArticle = async (slug: string, id: number) => {
-  const existingArticle = await await prisma.article.findFirst({
+  const existingArticle = await prisma.article.findFirst({
     where: {
       slug,
     },
@@ -414,30 +414,14 @@ export const deleteArticle = async (slug: string, id: number) => {
 };
 
 export const getCommentsByArticle = async (slug: string, id?: number) => {
-  const queries = [];
-
-  queries.push({
-    author: {
-      demo: true,
-    },
-  });
-
-  if (id) {
-    queries.push({
-      author: {
-        id,
-      },
-    });
-  }
-
-  const comments = await prisma.article.findUnique({
+  const articleWithComments = await prisma.article.findUnique({
     where: {
       slug,
     },
     include: {
       comments: {
-        where: {
-          OR: queries,
+        orderBy: {
+          createdAt: 'desc',
         },
         select: {
           id: true,
@@ -457,15 +441,15 @@ export const getCommentsByArticle = async (slug: string, id?: number) => {
     },
   });
 
-  const result = comments?.comments.map((comment: any) => ({
+  const result = articleWithComments?.comments.map((comment: any) => ({
     ...comment,
     author: {
       username: comment.author.username,
       bio: comment.author.bio,
       image: comment.author.image,
-      following: comment.author.followedBy.some((follow: any) => follow.id === id),
+      following: id ? comment.author.followedBy.some((follow: any) => follow.id === id) : false,
     },
-  }));
+  })) || [];
 
   return result;
 };
