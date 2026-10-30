@@ -42,3 +42,5 @@ Thumbs.db
 .nx/cache
 
 postman/
+
+.postman/resources.yaml
