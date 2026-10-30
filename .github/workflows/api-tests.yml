@@ -27,7 +27,7 @@ jobs:
         run: npx prisma generate
 
       - name: Start Backend Server
-        run: pnpm run dev &
+        run: pnpm start &
         env:
           DATABASE_URL: "postgresql://postgres.rndqxihcimghisvuxmsx:mihhhidzvodichvutru@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres"
           DIRECT_URL: "postgresql://postgres.rndqxihcimghisvuxmsx:mihhhidzvodichvutru@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres"
