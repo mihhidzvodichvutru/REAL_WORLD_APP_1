@@ -116,7 +116,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{json_web_token_02a1}}",
+                  "value": "{{json_web_token_09c9}}",
                   "type": "string"
                 }
               ]
@@ -129,7 +129,7 @@
               },
               {
                 "key": "Authorization",
-                "value": "Token{{token}}"
+                "value": "Token{{token_a}}"
               }
             ],
             "body": {
@@ -206,7 +206,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{json_web_token_02a1}}",
+                  "value": "{{json_web_token_11yz}}",
                   "type": "string"
                 }
               ]
@@ -219,7 +219,7 @@
               },
               {
                 "key": "Authorization",
-                "value": "Token {{token}}"
+                "value": "Token {{token_a}}"
               }
             ],
             "body": {
@@ -264,7 +264,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{json_web_token_12vw}}",
+                  "value": "{{json_web_token_11yz}}",
                   "type": "string"
                 }
               ]
@@ -277,7 +277,7 @@
               },
               {
                 "key": "Authorization",
-                "value": "Token{{token}}"
+                "value": "Token{{token_a}}"
               }
             ],
             "url": {
@@ -586,62 +586,58 @@
   "variable": [
     {
       "key": "json_web_token_0fb0",
-      "type": "string",
       "secret": true
     },
     {
       "key": "json_web_token_0af5",
-      "type": "string",
       "secret": true
     },
     {
       "key": "json_web_token_0sro",
-      "type": "string",
       "secret": true
     },
     {
       "key": "json_web_token_1867",
-      "type": "string",
       "secret": true
     },
     {
       "key": "json_web_token_0js2",
-      "type": "string",
       "secret": true
     },
     {
       "key": "json_web_token_02a1",
-      "type": "string",
       "secret": true
     },
     {
       "key": "json_web_token_05d8",
-      "type": "string",
       "secret": true
     },
     {
       "key": "json_web_token_12vw",
-      "type": "string",
       "secret": true
     },
     {
       "key": "json_web_token_1d57",
-      "type": "string",
       "secret": true
     },
     {
       "key": "json_web_token_0oqw",
-      "type": "string",
       "secret": true
     },
     {
       "key": "json_web_token_0p0r",
-      "type": "string",
       "secret": true
     },
     {
       "key": "json_web_token_0mvh",
-      "type": "string",
+      "secret": true
+    },
+    {
+      "key": "json_web_token_09c9",
+      "secret": true
+    },
+    {
+      "key": "json_web_token_11yz",
       "secret": true
     }
   ]
