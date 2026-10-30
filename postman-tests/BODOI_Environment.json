@@ -4,7 +4,7 @@
     "values": [
         {
             "key": "base_url",
-            "value": "https://dia-chi-server-da-deploy-cua-nhom.com",
+            "value": "http://localhost:3000",
             "type": "default",
             "enabled": true
         },
