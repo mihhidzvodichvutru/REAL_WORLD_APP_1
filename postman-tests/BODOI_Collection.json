@@ -1,0 +1,648 @@
+{
+  "info": {
+    "_postman_id": "ab5dc978-d1af-4954-9e74-3979c75262e3",
+    "name": "kiểm thử vòng đời bài viết",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "52962223",
+    "_collection_link": "https://go.postman.co/collection/52962223-ab5dc978-d1af-4954-9e74-3979c75262e3?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Sign Up",
+      "item": [
+        {
+          "name": "Sign up",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// 1. Kiểm tra mã trạng thái trả về (201 Created hoặc 200 OK tùy cấu hình Backend)\r\npm.test(\"Đăng ký tài khoản thành công\", function () {\r\n    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r\n});\r\n\r\n// 2. Tự động trích xuất token ngay sau khi đăng ký thành công\r\nvar jsonData = pm.response.json();\r\nif (jsonData.user && jsonData.user.token) {\r\n    pm.environment.set(\"token\", jsonData.user.token);\r\n    pm.environment.set(\"registered_username\", jsonData.user.username);\r\n    console.log(\"✨ Đăng ký thành công tài khoản: [\" + jsonData.user.username + \"] và đã lưu token vào môi trường!\");\r\n}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"user\": {\r\n    \"username\": \"changg{{$randomInt}}\",\r\n    \"email\": \"changg_nopro{{$randomInt}}@test.com\",\r\n    \"password\": \"changgbomayde\"\r\n  }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "CRUD",
+      "item": [
+        {
+          "name": "POST Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// In toàn bộ cấu hình response ra console để check cho chắc\r\nconst res = pm.response.json();\r\nconsole.log(\"Response đầy đủ là:\", res);\r\n\r\n// Bóc tách token linh hoạt theo mọi cấu trúc có thể có của RealWorld App\r\nconst token = res.user?.token || res.token || res.access_token;\r\n\r\nif (token) {\r\n    pm.environment.set(\"token\", token);\r\n    console.log(\"🔥 Đã bắt và lưu token thành công: \" + token.substring(0, 15) + \"...\");\r\n} else {\r\n    console.error(\"❌ Vẫn không thấy token, cấu trúc JSON trả về đang là:\", JSON.stringify(res));\r\n}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"user\": {\r\n        \"email\": \"khonoi@gmail.com\",\r\n        \"password\": \"anthan123\"\r\n    }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// 1. Kiểm tra mã phản hồi tạo bài viết thành công là 201 Created (hoặc 200 OK)\r\npm.test(\"Tạo bài viết thành công\", function () {\r\n    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r\n});\r\n\r\n// 2. Bóc tách dữ liệu JSON từ Server trả về\r\nvar jsonData = pm.response.json();\r\n\r\n// 3. Tự động bóc tách slug và lưu vào biến môi trường (Có cơ chế bảo vệ an toàn)\r\nif (jsonData.article && jsonData.article.slug) {\r\n    var articleSlug = jsonData.article.slug;\r\n    \r\n    // Lưu vào biến môi trường\r\n    pm.environment.set(\"slug\", articleSlug);\r\n    \r\n    // In log ra Console để dễ debug\r\n    console.log(\"🔥 Đã bắt được Slug bài viết: \" + articleSlug);\r\n    \r\n    // Test case xác nhận đã bắt được biến\r\n    pm.test(\"🚀 Lưu Slug bài viết vào môi trường thành công\", function () {\r\n        pm.expect(articleSlug).to.not.be.empty;\r\n    });\r\n} else {\r\n    console.log(\"❌ Không tìm thấy slug trong response. Vui lòng kiểm tra lại body trả về!\");\r\n}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{json_web_token_02a1}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Token{{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"article\": {\r\n    \"title\": \"acquy67  {{$timestamp}}-{{$randomInt}}\",\r\n    \"description\": \"Đồ án môn học Đảm bảo chất lượng phần mềm - Nhóm BODOI Std\",\r\n    \"body\": \"Nội dung chi tiết của bài báo cáo đồ án: Quy trình kiểm thử tự động, tích hợp CI/CD và đánh giá hiệu năng hệ thống.\",\r\n    \"tagList\": [\"testing\", \"postman\", \"bodoi-std\", \"ci-cd\"]\r\n  }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/articles",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "articles"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Read",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code phải là 200 OK\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Bài viết trả về phải khớp chuẩn xác với Slug vừa tạo\", function () {\r\n    var jsonData = pm.response.json();\r\n    pm.expect(jsonData.article.slug).to.eql(pm.environment.get(\"slug\"));\r\n});\r\n\r\npm.test(\"Response body chứa đầy đủ thông tin bài viết\", function () {\r\n    var jsonData = pm.response.json();\r\n    pm.expect(jsonData).to.have.property('article');\r\n    pm.expect(jsonData.article).to.have.property('title');\r\n    pm.expect(jsonData.article).to.have.property('body');\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/articles/{{slug}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "articles",
+                "{{slug}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT Update",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code là 200 OK (Sửa bài thành công)\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\nvar jsonData = pm.response.json();\r\n\r\n// Áo giáp: Chỉ test dữ liệu nếu update thành công (có cục article)\r\nif (pm.response.code === 200 && jsonData.article) {\r\n    pm.test(\"Tiêu đề và nội dung đã được cập nhật\", function () {\r\n        // Chỉ cần check xem title có chứa chữ \"update\" là được, vì nó có nối đuôi timestamp ngẫu nhiên\r\n        pm.expect(jsonData.article.title).to.include(\"update bằng Postman\");\r\n    });\r\n\r\n    if (jsonData.article.slug) {\r\n        pm.environment.set(\"slug\", jsonData.article.slug);\r\n        console.log(\"🔄 Đã cập nhật lại Slug mới sau khi sửa: \" + jsonData.article.slug);\r\n    }\r\n} else {\r\n    console.error(\"❌ Update thất bại hoặc trùng lặp. Server trả về:\", JSON.stringify(jsonData));\r\n}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{json_web_token_02a1}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Token {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"article\": {\r\n    \"title\": \"Tiêu đề đã được update bằng Postman - BODOI Std {{$timestamp}-{{$randomInt}}\",\r\n    \"description\": \"Mô tả mới được cập nhật để test luồng PUT\",\r\n    \"body\": \"Nội dung này đã được chỉnh sửa bằng lệnh PUT để kiểm thử vòng đời bài viết.\"\r\n  }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/articles/{{slug}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "articles",
+                "{{slug}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// 1. Kiểm tra mã trạng thái (Router backend của nhóm đang dùng res.sendStatus(204), ta bắt cả 200 hoặc 204 cho chắc)\r\npm.test(\"Status code là 200 hoặc 204 (Xóa bài viết thành công)\", function () {\r\n    pm.expect(pm.response.code).to.be.oneOf([200, 204]);\r\n});\r\n\r\n// 2. Dọn dẹp chiến trường: Hủy biến 'slug' để tránh rác cho các lần test CI/CD tiếp theo\r\nvar deletedSlug = pm.environment.get(\"slug\");\r\npm.environment.unset(\"slug\");\r\n\r\nconsole.log(\"🧹 Đã xóa thành công bài viết có slug: [\" + deletedSlug + \"] và dọn sạch biến môi trường!\");"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{json_web_token_12vw}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Token{{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/articles/{{slug}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "articles",
+                "{{slug}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Comment API",
+      "item": [
+        {
+          "name": "POST Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// In toàn bộ cấu hình response ra console để check cho chắc\r\nconst res = pm.response.json();\r\nconsole.log(\"Response đầy đủ là:\", res);\r\n\r\n// Bóc tách token linh hoạt theo mọi cấu trúc có thể có của RealWorld App\r\nconst token = res.user?.token || res.token || res.access_token;\r\n\r\nif (token) {\r\n    pm.environment.set(\"token_a\", token);\r\n    console.log(\"🔥 Đã bắt và lưu token thành công: \" + token.substring(0, 15) + \"...\");\r\n} else {\r\n    console.error(\"❌ Vẫn không thấy token, cấu trúc JSON trả về đang là:\", JSON.stringify(res));\r\n}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"user\": {\r\n        \"email\": \"khonoi@gmail.com\",\r\n        \"password\": \"anthan123\"\r\n    }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// 1. Kiểm tra mã phản hồi tạo bài viết thành công là 201 Created (hoặc 200 OK)\r\npm.test(\"Tạo bài viết thành công\", function () {\r\n    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r\n});\r\n\r\n// 2. Bóc tách dữ liệu JSON từ Server trả về\r\nvar jsonData = pm.response.json();\r\n\r\n// 3. Tự động bóc tách slug và lưu vào biến môi trường (Có cơ chế bảo vệ an toàn)\r\nif (jsonData.article && jsonData.article.slug) {\r\n    var articleSlug = jsonData.article.slug;\r\n    \r\n    // Lưu vào biến môi trường\r\n    pm.environment.set(\"slug\", articleSlug);\r\n    \r\n    // In log ra Console để dễ debug\r\n    console.log(\"🔥 Đã bắt được Slug bài viết: \" + articleSlug);\r\n    \r\n    // Test case xác nhận đã bắt được biến\r\n    pm.test(\"🚀 Lưu Slug bài viết vào môi trường thành công\", function () {\r\n        pm.expect(articleSlug).to.not.be.empty;\r\n    });\r\n} else {\r\n    console.log(\"❌ Không tìm thấy slug trong response. Vui lòng kiểm tra lại body trả về!\");\r\n}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{json_web_token_02a1}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Token{{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"article\": {\r\n    \"title\": \"acquy67  {{$timestamp}}-{{$randomInt}}\",\r\n    \"description\": \"Đồ án môn học Đảm bảo chất lượng phần mềm - Nhóm BODOI Std\",\r\n    \"body\": \"Nội dung chi tiết của bài báo cáo đồ án: Quy trình kiểm thử tự động, tích hợp CI/CD và đánh giá hiệu năng hệ thống.\",\r\n    \"tagList\": [\"testing\", \"postman\", \"bodoi-std\", \"ci-cd\"]\r\n  }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/articles",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "articles"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST Login 2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// In toàn bộ cấu hình response ra console để check cho chắc\r\nconst res = pm.response.json();\r\nconsole.log(\"Response đầy đủ là:\", res);\r\n\r\n// Bóc tách token linh hoạt theo mọi cấu trúc có thể có của RealWorld App\r\nconst token = res.user?.token || res.token || res.access_token;\r\n\r\nif (token) {\r\n    pm.environment.set(\"token_b\", token);\r\n    console.log(\"🔥 Đã bắt và lưu token thành công: \" + token.substring(0, 15) + \"...\");\r\n} else {\r\n    console.error(\"❌ Vẫn không thấy token, cấu trúc JSON trả về đang là:\", JSON.stringify(res));\r\n}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"user\": {\r\n        \"email\": \"changg_nopro740@test.com\",\r\n        \"password\": \"changgbomayde\"\r\n    }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add comment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var jsonData = pm.response.json();\r\n\r\n// Kiểm tra xem cấu trúc trả về có bọc trong đối tượng comment hay không\r\nvar commentObj = jsonData.comment || jsonData; \r\n\r\nif (commentObj && commentObj.id) {\r\n    pm.environment.set(\"comment_id\", commentObj.id);\r\n    console.log(\"🔥 Đã bắt sống và lưu comment_id: \" + commentObj.id);\r\n} else {\r\n    console.log(\"❌ Không tìm thấy trường id trong phản hồi của Server!\");\r\n}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{json_web_token_0p0r}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Token{{token_b}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"comment\": {\r\n    \"body\": \"Đồ án Đảm bảo chất lượng phần mềm của nhóm BODOI Std chạy cực mượt! {{$randomInt}}\"\r\n  }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/articles/{{slug}}/comments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "articles",
+                "{{slug}}",
+                "comments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Comment List",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// 1. Kiểm tra trạng thái gọi API thành công\r\npm.test(\"Trạng thái trả về là 200 OK\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\nvar jsonData = pm.response.json();\r\n\r\n// 2. Kiểm tra cấu trúc trả về phải có mảng 'comments'\r\npm.test(\"Dữ liệu trả về phải chứa mảng 'comments'\", function () {\r\n    pm.expect(jsonData).to.have.property('comments');\r\n    pm.expect(jsonData.comments).to.be.an('array');\r\n});\r\n\r\n// 3. Hiển thị danh sách ra Console và kiểm tra chéo\r\nif (jsonData.comments && jsonData.comments.length > 0) {\r\n    // In danh sách ra Postman Console để huynh dễ nhìn\r\n    console.log(\"🔥 Đã lấy được \" + jsonData.comments.length + \" bình luận!\");\r\n    console.log(\"Chi tiết danh sách:\", jsonData.comments);\r\n\r\n    // Kịch bản Pro cho đồ án: Kiểm tra xem cái comment số 7 vừa tạo có nằm trong danh sách này không\r\n    var expectedCommentId = pm.environment.get(\"comment_id\");\r\n    if (expectedCommentId) {\r\n        pm.test(\"Bình luận vừa tạo (ID: \" + expectedCommentId + \") phải tồn tại trong danh sách\", function () {\r\n            var found = jsonData.comments.find(c => c.id == expectedCommentId);\r\n            pm.expect(found).to.not.be.undefined;\r\n        });\r\n    }\r\n} else {\r\n    console.log(\"⚠️ API gọi thành công nhưng danh sách bình luận đang trống trơn!\");\r\n}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/articles/{{slug}}/comments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "articles",
+                "{{slug}}",
+                "comments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Comment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Xóa bình luận thành công (200 hoặc 204)\", function () {\r\n    pm.expect(pm.response.code).to.be.oneOf([200, 204]);\r\n});\r\n\r\n// Xóa biến tạm sau khi test xong\r\npm.environment.unset(\"comment_id\");\r\nconsole.log(\"🧹 Đã dọn dẹp comment_id khỏi môi trường!\");"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{json_web_token_0mvh}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Token{{token_b}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/articles/{{slug}}/comments/{{comment_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "articles",
+                "{{slug}}",
+                "comments",
+                "{{comment_id}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "json_web_token_0fb0",
+      "type": "string",
+      "secret": true
+    },
+    {
+      "key": "json_web_token_0af5",
+      "type": "string",
+      "secret": true
+    },
+    {
+      "key": "json_web_token_0sro",
+      "type": "string",
+      "secret": true
+    },
+    {
+      "key": "json_web_token_1867",
+      "type": "string",
+      "secret": true
+    },
+    {
+      "key": "json_web_token_0js2",
+      "type": "string",
+      "secret": true
+    },
+    {
+      "key": "json_web_token_02a1",
+      "type": "string",
+      "secret": true
+    },
+    {
+      "key": "json_web_token_05d8",
+      "type": "string",
+      "secret": true
+    },
+    {
+      "key": "json_web_token_12vw",
+      "type": "string",
+      "secret": true
+    },
+    {
+      "key": "json_web_token_1d57",
+      "type": "string",
+      "secret": true
+    },
+    {
+      "key": "json_web_token_0oqw",
+      "type": "string",
+      "secret": true
+    },
+    {
+      "key": "json_web_token_0p0r",
+      "type": "string",
+      "secret": true
+    },
+    {
+      "key": "json_web_token_0mvh",
+      "type": "string",
+      "secret": true
+    }
+  ]
+}
