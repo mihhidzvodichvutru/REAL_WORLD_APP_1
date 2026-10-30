@@ -7,9 +7,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Source Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4 # Nâng cấp lên v4
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4 # Nâng cấp lên v4
         with:
           node-version: '18'
       - name: Install Newman
@@ -21,7 +21,7 @@ jobs:
           -r cli,htmlextra
           --reporter-htmlextra-export ./BODOI_Test_Report.html
       - name: Upload Test Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4 # Nâng cấp lên v4
         if: always()
         with:
           name: BODOI-API-Report
