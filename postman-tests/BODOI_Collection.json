@@ -66,7 +66,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "// In toàn bộ cấu hình response ra console để check cho chắc\r\nconst res = pm.response.json();\r\nconsole.log(\"Response đầy đủ là:\", res);\r\n\r\n// Bóc tách token linh hoạt theo mọi cấu trúc có thể có của RealWorld App\r\nconst token = res.user?.token || res.token || res.access_token;\r\n\r\nif (token) {\r\n    pm.environment.set(\"token\", token);\r\n    console.log(\"🔥 Đã bắt và lưu token thành công: \" + token.substring(0, 15) + \"...\");\r\n} else {\r\n    console.error(\"❌ Vẫn không thấy token, cấu trúc JSON trả về đang là:\", JSON.stringify(res));\r\n}"
+                  "// In toàn bộ cấu hình response ra console để check cho chắc\r\nconst res = pm.response.json();\r\nconsole.log(\"Response đầy đủ là:\", res);\r\n\r\n// Bóc tách token linh hoạt theo mọi cấu trúc có thể có của RealWorld App\r\nconst token = res.user?.token || res.token || res.access_token;\r\n\r\nif (token) {\r\n    pm.environment.set(\"token_a\", token);\r\n    console.log(\"🔥 Đã bắt và lưu token thành công: \" + token.substring(0, 15) + \"...\");\r\n} else {\r\n    console.error(\"❌ Vẫn không thấy token, cấu trúc JSON trả về đang là:\", JSON.stringify(res));\r\n}"
                 ]
               }
             }
