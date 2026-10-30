@@ -1,0 +1,40 @@
+{
+	"id": "bc548dbd-9413-4219-9447-375519be30a2",
+	"name": "BODOI AUTO TESTING",
+	"values": [
+		{
+			"key": "base_url",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "token_a",
+			"type": "default",
+			"enabled": true,
+			"secret": true
+		},
+		{
+			"key": "registered_username",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "slug",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "token_b",
+			"type": "default",
+			"enabled": true,
+			"secret": true
+		}
+	],
+	"color": 120,
+	"_postman_variable_scope": "environment",
+	"_postman_exported_at": "2026-10-30T15:00:56.221Z",
+	"_postman_exported_using": "Postman/12.34.4-261030-0231"
+}

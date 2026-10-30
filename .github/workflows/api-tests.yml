@@ -1,0 +1,28 @@
+name: BODOI Std - API Automated Testing (CI)
+on:
+  push:
+    branches: [ "main" ]
+jobs:
+  test-api:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - name: Install Newman
+        run: npm install -g newman newman-reporter-htmlextra
+      - name: Run Postman Tests
+        run: >
+          newman run ./postman-tests/BODOI_Collection.json
+          -e ./postman-tests/BODOI_Environment.json
+          -r cli,htmlextra
+          --reporter-htmlextra-export ./BODOI_Test_Report.html
+      - name: Upload Test Report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: BODOI-API-Report
+          path: ./BODOI_Test_Report.html
