@@ -29,8 +29,8 @@ jobs:
       - name: Start Backend Server
         run: pnpm start &
         env:
-          DATABASE_URL: "postgresql://postgres.rndqxihcimghisvuxmsx:mihhidzvodichvutru@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres"
-          DIRECT_URL: "postgresql://postgres.rndqxihcimghisvuxmsx:mihhidzvodichvutru@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres"
+          DATABASE_URL: "postgresql://postgres.rndqxihcimghisvuxmsx:minhhidzvodichvutru@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+          DIRECT_URL: "postgresql://postgres.rndqxihcimghisvuxmsx:minhhidzvodichvutru@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres"
           SECRET: "secret"
           NODE_ENV: "development"
 
