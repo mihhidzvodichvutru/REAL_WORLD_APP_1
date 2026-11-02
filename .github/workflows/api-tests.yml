@@ -48,6 +48,7 @@ jobs:
           --reporter-htmlextra-export ./BODOI_Test_Report.html
 
       # BƯỚC MỚI 1: Cài đặt k6 trực tiếp lên máy ảo Ubuntu
+     # BƯỚC MỚI 1: Cài đặt k6 trực tiếp lên máy ảo Ubuntu (Đã sửa lỗi GPG Key)
       - name: Install k6
         run: |
           sudo gpg -k
