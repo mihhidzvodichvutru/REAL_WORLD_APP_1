@@ -1,8 +1,5 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
-// Sử dụng CDN jsDelivr để né lỗi Rate Limit và đảm bảo ổn định
-import { htmlReport } from 'https://cdn.jsdelivr.net/gh/benc-uk/k6-reporter@main/dist/bundle.js';
-import { textSummary } from 'https://jslib.k6.io/k6-summary/0.0.1/index.js';
 
 export const options = {
   vus: 100,
@@ -15,7 +12,6 @@ export const options = {
 
 export default function () {
   const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000/api';
-  
   const res = http.get(`${BASE_URL}/articles`);
 
   check(res, {
@@ -24,12 +20,4 @@ export default function () {
   });
 
   sleep(1);
-}
-
-// Hàm thu thập báo cáo HTML nằm độc lập bên ngoài
-export function handleSummary(data) {
-  return {
-    'loadtest-report.html': htmlReport(data),
-    stdout: textSummary(data, { indent: ' ', enableColors: true }),
-  };
 }
