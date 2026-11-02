@@ -1,0 +1,55 @@
+name: Functional Tests (Newman)
+on:
+  push:
+    branches: [ "main" ]
+jobs:
+  functional-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: Install Backend Dependencies
+        run: pnpm install
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Start Backend Server
+        run: pnpm start &
+        env:
+          DATABASE_URL: "postgresql://postgres.rndqxihcimghisvuxmsx:minhhidzvodichvutru@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+          DIRECT_URL: "postgresql://postgres.rndqxihcimghisvuxmsx:minhhidzvodichvutru@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres"
+          SECRET: "secret"
+          NODE_ENV: "development"
+
+      - name: Wait for Server to Boot
+        run: sleep 10
+
+      - name: Install Newman
+        run: pnpm add -g newman newman-reporter-htmlextra
+        
+      - name: Run Postman Tests
+        run: >
+          newman run ./postman-tests/BODOI_Collection.json
+          -e ./postman-tests/BODOI_Environment.json
+          -r cli,htmlextra
+          --reporter-htmlextra-export ./BODOI_Test_Report.html
+
+      - name: Upload Functional Test Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: BODOI-API-Functional-Report
+          path: ./BODOI_Test_Report.html

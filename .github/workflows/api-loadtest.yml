@@ -1,9 +1,10 @@
-name: BODOI Std - API Automated Testing (CI)
+name: Load Tests (k6)
 on:
   push:
     branches: [ "main" ]
+  workflow_dispatch: # Cho phép kích hoạt dội tải thủ công bằng nút bấm
 jobs:
-  test-api:
+  load-tests:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Source Code
@@ -37,16 +38,6 @@ jobs:
       - name: Wait for Server to Boot
         run: sleep 10
 
-      - name: Install Newman
-        run: pnpm add -g newman newman-reporter-htmlextra
-        
-      - name: Run Postman Tests
-        run: >
-          newman run ./postman-tests/BODOI_Collection.json
-          -e ./postman-tests/BODOI_Environment.json
-          -r cli,htmlextra
-          --reporter-htmlextra-export ./BODOI_Test_Report.html
-
       - name: Install and Run k6 Load Testing
         run: |
           wget -q -O - https://github.com/grafana/k6/releases/download/v0.50.0/k6-v0.50.0-linux-amd64.tar.gz | tar -xz
@@ -55,10 +46,3 @@ jobs:
           k6 run loadtest.js
         env:
           BASE_URL: 'http://localhost:3000/api'
-
-      - name: Upload Test Report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: BODOI-API-Report
-          path: ./BODOI_Test_Report.html
