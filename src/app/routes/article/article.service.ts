@@ -65,6 +65,49 @@ const buildFindAllQuery = (query: any, id: number | undefined) => {
   return queries;
 };
 
+/**
+ * Turns a title into a URL-safe slug.
+ * - Strips accents/diacritics (important for Vietnamese and other non-ASCII titles)
+ * - Lowercases
+ * - Removes characters that aren't letters, numbers, spaces, or hyphens
+ * - Collapses whitespace/hyphens into single hyphens
+ *
+ * This avoids slug mismatches caused by special characters that get
+ * encoded/decoded inconsistently between article creation and later
+ * lookups (e.g. favorite/unfavorite by slug).
+ */
+const slugify = (title: string) =>
+  title
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // strip diacritics
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '') // drop remaining special chars
+    .replace(/\s+/g, '-') // spaces -> hyphens
+    .replace(/-+/g, '-'); // collapse multiple hyphens
+
+const articleIncludes = {
+  tagList: {
+    select: {
+      name: true,
+    },
+  },
+  author: {
+    select: {
+      username: true,
+      bio: true,
+      image: true,
+      followedBy: true,
+    },
+  },
+  favoritedBy: true,
+  _count: {
+    select: {
+      favoritedBy: true,
+    },
+  },
+};
+
 export const getArticles = async (query: any, id?: number) => {
   const andQueries = buildFindAllQuery(query, id);
   const articlesCount = await prisma.article.count({
@@ -80,27 +123,7 @@ export const getArticles = async (query: any, id?: number) => {
     },
     skip: Number(query.offset) || 0,
     take: Number(query.limit) || 10,
-    include: {
-      tagList: {
-        select: {
-          name: true,
-        },
-      },
-      author: {
-        select: {
-          username: true,
-          bio: true,
-          image: true,
-          followedBy: true,
-        },
-      },
-      favoritedBy: true,
-      _count: {
-        select: {
-          favoritedBy: true,
-        },
-      },
-    },
+    include: articleIncludes,
   });
 
   return {
@@ -129,27 +152,7 @@ export const getFeed = async (offset: number, limit: number, id: number) => {
     },
     skip: offset || 0,
     take: limit || 10,
-    include: {
-      tagList: {
-        select: {
-          name: true,
-        },
-      },
-      author: {
-        select: {
-          username: true,
-          bio: true,
-          image: true,
-          followedBy: true,
-        },
-      },
-      favoritedBy: true,
-      _count: {
-        select: {
-          favoritedBy: true,
-        },
-      },
-    },
+    include: articleIncludes,
   });
 
   return {
@@ -174,7 +177,7 @@ export const createArticle = async (article: any, id: number) => {
     throw new HttpException(422, { errors: { body: ["can't be blank"] } });
   }
 
-  const slug = `${title.toLowerCase().replace(/ /g, '-')}-${id}`;
+  const slug = `${slugify(title)}-${id}`;
 
   const existingTitle = await prisma.article.findUnique({
     where: {
@@ -211,27 +214,7 @@ export const createArticle = async (article: any, id: number) => {
         },
       },
     },
-    include: {
-      tagList: {
-        select: {
-          name: true,
-        },
-      },
-      author: {
-        select: {
-          username: true,
-          bio: true,
-          image: true,
-          followedBy: true,
-        },
-      },
-      favoritedBy: true,
-      _count: {
-        select: {
-          favoritedBy: true,
-        },
-      },
-    },
+    include: articleIncludes,
   });
 
   return articleMapper(createdArticle, id);
@@ -242,27 +225,7 @@ export const getArticle = async (slug: string, id?: number) => {
     where: {
       slug,
     },
-    include: {
-      tagList: {
-        select: {
-          name: true,
-        },
-      },
-      author: {
-        select: {
-          username: true,
-          bio: true,
-          image: true,
-          followedBy: true,
-        },
-      },
-      favoritedBy: true,
-      _count: {
-        select: {
-          favoritedBy: true,
-        },
-      },
-    },
+    include: articleIncludes,
   });
 
   if (!article) {
@@ -313,7 +276,7 @@ export const updateArticle = async (article: any, slug: string, id: number) => {
   }
 
   if (article.title) {
-    newSlug = `${article.title.toLowerCase().replace(/ /g, '-')}-${id}`;
+    newSlug = `${slugify(article.title)}-${id}`;
 
     if (newSlug !== slug) {
       const existingTitle = await prisma.article.findFirst({
@@ -355,27 +318,7 @@ export const updateArticle = async (article: any, slug: string, id: number) => {
         connectOrCreate: tagList,
       },
     },
-    include: {
-      tagList: {
-        select: {
-          name: true,
-        },
-      },
-      author: {
-        select: {
-          username: true,
-          bio: true,
-          image: true,
-          followedBy: true,
-        },
-      },
-      favoritedBy: true,
-      _count: {
-        select: {
-          favoritedBy: true,
-        },
-      },
-    },
+    include: articleIncludes,
   });
 
   return articleMapper(updatedArticle, id);
@@ -467,12 +410,16 @@ export const addComment = async (body: string, slug: string, id: number) => {
     },
   });
 
+  if (!article) {
+    throw new HttpException(404, { errors: { article: ['not found'] } });
+  }
+
   const comment = await prisma.comment.create({
     data: {
       body,
       article: {
         connect: {
-          id: article?.id,
+          id: article.id,
         },
       },
       author: {
@@ -542,74 +489,52 @@ export const deleteComment = async (id: number, userId: number) => {
   });
 };
 
-export const favoriteArticle = async (slugPayload: string, id: number) => {
-  try {
-    const existing = await prisma.article.findFirst({
-      where: {
-        slug: slugPayload,
-        favoritedBy: { some: { id: id } }
-      }
-    });
-
-    if (!existing) {
-      await prisma.article.update({
-        where: { slug: slugPayload },
-        data: { favoritedBy: { connect: { id: id } } },
-      });
-    }
-  } catch (e) {
-    // Bỏ qua lỗi trùng lặp nếu đã tồn tại
-  }
-
+/**
+ * Prisma's connect/disconnect on many-to-many relations are idempotent-safe:
+ * connecting an already-connected record (or disconnecting an already
+ * disconnected one) does not throw. So we don't need a manual
+ * existence-check + try/catch dance here — we just need to confirm the
+ * article itself exists (by slug) before touching the relation, and let
+ * any real DB error propagate instead of being silently swallowed.
+ */
+export const favoriteArticle = async (slug: string, id: number) => {
   const article = await prisma.article.findUnique({
-    where: { slug: slugPayload },
-    include: {
-      tagList: { select: { name: true } },
-      author: { select: { username: true, bio: true, image: true, followedBy: true } },
-      favoritedBy: true,
-      _count: { select: { favoritedBy: true } },
-    },
+    where: { slug },
+    select: { id: true },
   });
 
   if (!article) {
     throw new HttpException(404, { errors: { article: ['not found'] } });
   }
 
-  return articleMapper(article, id);
+  const updatedArticle = await prisma.article.update({
+    where: { slug },
+    data: {
+      favoritedBy: { connect: { id } },
+    },
+    include: articleIncludes,
+  });
+
+  return articleMapper(updatedArticle, id);
 };
 
-export const unfavoriteArticle = async (slugPayload: string, id: number) => {
-  try {
-    const existing = await prisma.article.findFirst({
-      where: {
-        slug: slugPayload,
-        favoritedBy: { some: { id: id } }
-      }
-    });
-
-    if (existing) {
-      await prisma.article.update({
-        where: { slug: slugPayload },
-        data: { favoritedBy: { disconnect: { id: id } } },
-      });
-    }
-  } catch (e) {
-    // Bỏ qua lỗi nếu chưa từng tồn tại quan hệ
-  }
-
+export const unfavoriteArticle = async (slug: string, id: number) => {
   const article = await prisma.article.findUnique({
-    where: { slug: slugPayload },
-    include: {
-      tagList: { select: { name: true } },
-      author: { select: { username: true, bio: true, image: true, followedBy: true } },
-      favoritedBy: true,
-      _count: { select: { favoritedBy: true } },
-    },
+    where: { slug },
+    select: { id: true },
   });
 
   if (!article) {
     throw new HttpException(404, { errors: { article: ['not found'] } });
   }
 
-  return articleMapper(article, id);
+  const updatedArticle = await prisma.article.update({
+    where: { slug },
+    data: {
+      favoritedBy: { disconnect: { id } },
+    },
+    include: articleIncludes,
+  });
+
+  return articleMapper(updatedArticle, id);
 };
