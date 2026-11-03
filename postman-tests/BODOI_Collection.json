@@ -249,43 +249,6 @@
             }
           },
           "response": []
-        },
-        {
-          "name": "DELETE",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status code là 200 hoặc 204\", function () {",
-                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Token {{token_a}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/articles/{{slug}}",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "articles",
-                "{{slug}}"
-              ]
-            }
-          },
-          "response": []
         }
       ]
     },
@@ -624,14 +587,14 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/profiles/changg740/follow",
+              "raw": "{{base_url}}/api/profiles/{{registered_username}}/follow",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "api",
                 "profiles",
-                "changg740",
+                "{{registered_username}}",
                 "follow"
               ]
             }
@@ -666,15 +629,59 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/profiles/changg740/follow",
+              "raw": "{{base_url}}/api/profiles/{{registered_username}}/follow",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "api",
                 "profiles",
-                "changg740",
+                "{{registered_username}}",
                 "follow"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Cleanup & Finalize",
+      "item": [
+        {
+          "name": "DELETE Article Final",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code là 200 hoặc 204 (Dọn dẹp bài viết thành công)\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});",
+                  "pm.environment.unset(\"slug\");",
+                  "console.log(\"🧹 Đã dọn dẹp sạch sẽ bài viết cuối chu trình test!\");"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{token_a}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/articles/{{slug}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "articles",
+                "{{slug}}"
               ]
             }
           },
