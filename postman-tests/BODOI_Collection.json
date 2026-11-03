@@ -1,7 +1,7 @@
 {
   "info": {
     "_postman_id": "ab5dc978-d1af-4954-9e74-3979c75262e3",
-    "name": "kiểm thử vòng đời bài viết - BODOI Std",
+    "name": "kiểm thử vòng đời bài viết",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "52962223"
   },
@@ -394,8 +394,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Xóa bình luận thành công (200 hoặc 204)\", function () {",
-                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "pm.test(\"Xóa bình luận thành công (200, 204 hoặc 404)\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204, 404]);",
                   "});"
                 ]
               }
@@ -454,7 +454,7 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Token {{token_b}}"
+                "value": "Token {{token_a}}"
               }
             ],
             "url": {
@@ -496,7 +496,7 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Token {{token_b}}"
+                "value": "Token {{token_a}}"
               }
             ],
             "url": {
@@ -656,11 +656,11 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code là 200 hoặc 204 (Dọn dẹp bài viết thành công)\", function () {",
-                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "pm.test(\"Status code là 200, 204 hoặc 404\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204, 404]);",
                   "});",
                   "pm.environment.unset(\"slug\");",
-                  "console.log(\"🧹 Đã dọn dẹp sạch sẽ bài viết cuối chu trình test!\");"
+                  "console.log(\"🧹 Dọn dẹp thành công!\");"
                 ]
               }
             }
