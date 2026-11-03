@@ -210,7 +210,17 @@
                 "exec": [
                   "pm.test(\"Status code là 200 OK\", function () {",
                   "    pm.response.to.have.status(200);",
-                  "});"
+                  "});",
+                  "",
+                  "// QUAN TRỌNG: API đổi title sẽ làm backend sinh slug MỚI và lưu vào DB.",
+                  "// Nếu không cập nhật lại biến \"slug\" ở đây, mọi request phía sau",
+                  "// (Comment API, Favorites API, DELETE Article Final...) sẽ tiếp tục",
+                  "// gọi theo slug CŨ không còn tồn tại -> 404.",
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.article && jsonData.article.slug) {",
+                  "    pm.environment.set(\"slug\", jsonData.article.slug);",
+                  "    console.log(\"🔄 Slug đã cập nhật sau khi edit: \" + jsonData.article.slug);",
+                  "}"
                 ]
               }
             }
