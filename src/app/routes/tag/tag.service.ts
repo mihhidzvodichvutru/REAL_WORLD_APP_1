@@ -1,27 +1,13 @@
 import prisma from '../../../prisma/prisma-client';
 import { Tag } from './tag.model';
 
-const getTags = async (id?: number): Promise<string[]> => {
-  const queries = [];
-  queries.push({ demo: true });
-
-  if (id) {
-    queries.push({
-      id: {
-        equals: id,
-      },
-    });
-  }
-
+const getTags = async (): Promise<string[]> => {
+  // Lấy 10 thẻ có số lượng bài viết đính kèm nhiều nhất toàn hệ thống
   const tags = await prisma.tag.findMany({
     where: {
       articles: {
-        some: {
-          author: {
-            OR: queries,
-          },
-        },
-      },
+        some: {} // Chỉ lấy những tag đã có ít nhất 1 bài viết sử dụng
+      }
     },
     select: {
       name: true,
