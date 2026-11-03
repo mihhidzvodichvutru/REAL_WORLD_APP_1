@@ -1,4 +1,3 @@
-import slugify from 'slugify';
 import prisma from '../../../prisma/prisma-client';
 import HttpException from '../../models/http-exception.model';
 import profileMapper from '../profile/profile.utils';
@@ -175,7 +174,7 @@ export const createArticle = async (article: any, id: number) => {
     throw new HttpException(422, { errors: { body: ["can't be blank"] } });
   }
 
-  const slug = `${slugify(title)}-${id}`;
+  const slug = `${title.toLowerCase().replace(/ /g, '-')}-${id}`;
 
   const existingTitle = await prisma.article.findUnique({
     where: {
@@ -314,7 +313,7 @@ export const updateArticle = async (article: any, slug: string, id: number) => {
   }
 
   if (article.title) {
-    newSlug = `${slugify(article.title)}-${id}`;
+    newSlug = `${article.title.toLowerCase().replace(/ /g, '-')}-${id}`;
 
     if (newSlug !== slug) {
       const existingTitle = await prisma.article.findFirst({
@@ -544,93 +543,73 @@ export const deleteComment = async (id: number, userId: number) => {
 };
 
 export const favoriteArticle = async (slugPayload: string, id: number) => {
-  const { _count, ...article } = await prisma.article.update({
-    where: {
-      slug: slugPayload,
-    },
-    data: {
-      favoritedBy: {
-        connect: {
-          id: id,
-        },
-      },
-    },
+  try {
+    const existing = await prisma.article.findFirst({
+      where: {
+        slug: slugPayload,
+        favoritedBy: { some: { id: id } }
+      }
+    });
+
+    if (!existing) {
+      await prisma.article.update({
+        where: { slug: slugPayload },
+        data: { favoritedBy: { connect: { id: id } } },
+      });
+    }
+  } catch (e) {
+    // Bỏ qua lỗi trùng lặp nếu đã tồn tại
+  }
+
+  const article = await prisma.article.findUnique({
+    where: { slug: slugPayload },
     include: {
-      tagList: {
-        select: {
-          name: true,
-        },
-      },
-      author: {
-        select: {
-          username: true,
-          bio: true,
-          image: true,
-          followedBy: true,
-        },
-      },
+      tagList: { select: { name: true } },
+      author: { select: { username: true, bio: true, image: true, followedBy: true } },
       favoritedBy: true,
-      _count: {
-        select: {
-          favoritedBy: true,
-        },
-      },
+      _count: { select: { favoritedBy: true } },
     },
   });
 
-  const result = {
-    ...article,
-    author: profileMapper(article.author, id),
-    tagList: article?.tagList.map((tag: Tag) => tag.name),
-    favorited: article.favoritedBy.some((favorited: any) => favorited.id === id),
-    favoritesCount: _count?.favoritedBy,
-  };
+  if (!article) {
+    throw new HttpException(404, { errors: { article: ['not found'] } });
+  }
 
-  return result;
+  return articleMapper(article, id);
 };
 
 export const unfavoriteArticle = async (slugPayload: string, id: number) => {
-  const { _count, ...article } = await prisma.article.update({
-    where: {
-      slug: slugPayload,
-    },
-    data: {
-      favoritedBy: {
-        disconnect: {
-          id: id,
-        },
-      },
-    },
+  try {
+    const existing = await prisma.article.findFirst({
+      where: {
+        slug: slugPayload,
+        favoritedBy: { some: { id: id } }
+      }
+    });
+
+    if (existing) {
+      await prisma.article.update({
+        where: { slug: slugPayload },
+        data: { favoritedBy: { disconnect: { id: id } } },
+      });
+    }
+  } catch (e) {
+    // Bỏ qua lỗi nếu chưa từng tồn tại quan hệ
+  }
+
+  const article = await prisma.article.findUnique({
+    where: { slug: slugPayload },
     include: {
-      tagList: {
-        select: {
-          name: true,
-        },
-      },
-      author: {
-        select: {
-          username: true,
-          bio: true,
-          image: true,
-          followedBy: true,
-        },
-      },
+      tagList: { select: { name: true } },
+      author: { select: { username: true, bio: true, image: true, followedBy: true } },
       favoritedBy: true,
-      _count: {
-        select: {
-          favoritedBy: true,
-        },
-      },
+      _count: { select: { favoritedBy: true } },
     },
   });
 
-  const result = {
-    ...article,
-    author: profileMapper(article.author, id),
-    tagList: article?.tagList.map((tag: Tag) => tag.name),
-    favorited: article.favoritedBy.some((favorited: any) => favorited.id === id),
-    favoritesCount: _count?.favoritedBy,
-  };
+  if (!article) {
+    throw new HttpException(404, { errors: { article: ['not found'] } });
+  }
 
-  return result;
+  return articleMapper(article, id);
 };
