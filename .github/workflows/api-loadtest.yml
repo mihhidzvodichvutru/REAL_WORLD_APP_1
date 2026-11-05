@@ -47,9 +47,14 @@ jobs:
         env:
           BASE_URL: 'http://localhost:3000/api'
 
-      - name: Upload Load Test Report Artifact
+      - name: Generate HTML Report from k6 Summary
+        run: |
+          npm install -g k6-to-html
+          k6-to-html k6-summary.json -o load-test-report.html
+
+      - name: Upload Load Test HTML Report Artifact
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: BODOI-API-LoadTest-Report
-          path: k6-summary.json
+          name: BODOI-API-LoadTest-HTML-Report
+          path: load-test-report.html
