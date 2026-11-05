@@ -59,6 +59,100 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "SAD PATH Sign up - Duplicate Error",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Phải bắt lỗi trùng lặp - Status code is 422\", function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "pm.test(\"Phải có thông báo lỗi trong Response\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.errors).to.exist;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user\": {\n    \"username\": \"changg208\",\n    \"email\": \"changg_nopro705@test.com\",\n    \"password\": \"!@#$\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "SAD PATH Sign up - Missing Field",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Phải bắt lỗi thiếu trường - Status code is 422\", function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user\": {\n    \"username\": \"haicter\",\n    \"email\": \"changg_nopro{{$randomInt}}@test.com\",\n    \"password\": \"\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },
@@ -211,11 +305,6 @@
                   "pm.test(\"Status code là 200 OK\", function () {",
                   "    pm.response.to.have.status(200);",
                   "});",
-                  "",
-                  "// QUAN TRỌNG: API đổi title sẽ làm backend sinh slug MỚI và lưu vào DB.",
-                  "// Nếu không cập nhật lại biến \"slug\" ở đây, mọi request phía sau",
-                  "// (Comment API, Favorites API, DELETE Article Final...) sẽ tiếp tục",
-                  "// gọi theo slug CŨ không còn tồn tại -> 404.",
                   "var jsonData = pm.response.json();",
                   "if (jsonData.article && jsonData.article.slug) {",
                   "    pm.environment.set(\"slug\", jsonData.article.slug);",
@@ -255,6 +344,83 @@
                 "api",
                 "articles",
                 "{{slug}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "SAD PATH CRUD - Missing Token (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Phải chặn truy cập - Status 401 Unauthorized\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"article\": {\n    \"title\": \"Test 401 Unauthorized\",\n    \"description\": \"No token test\",\n    \"body\": \"Body content\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/articles",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "articles"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "SAD PATH CRUD - Non-existent Article (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Báo lỗi không tìm thấy - Status 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/articles/bai-viet-khong-ton-tai-12345",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "articles",
+                "bai-viet-khong-ton-tai-12345"
               ]
             }
           },
@@ -434,6 +600,55 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "SAD PATH Comment - Empty Body (422)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\n    \"Bắt lỗi nội dung rỗng - Status 422\",\n    function () {\n        pm.response.to.have.status(422);\n    }\n);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Token {{token_b}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"comment\": {\n    \"body\": \"\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/articles/{{slug}}/comments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "articles",
+                "{{slug}}",
+                "comments"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },
@@ -518,6 +733,44 @@
                 "api",
                 "articles",
                 "{{slug}}",
+                "favorite"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "SAD PATH Favorite - Non-existent Article (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Báo lỗi không tìm thấy bài viết - Status 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{token_a}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/articles/bai-viet-khong-ton-tai-favorite/favorite",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "articles",
+                "bai-viet-khong-ton-tai-favorite",
                 "favorite"
               ]
             }
@@ -647,6 +900,44 @@
                 "api",
                 "profiles",
                 "{{registered_username}}",
+                "follow"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "SAD PATH Profiles - Non-existent User (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Báo lỗi không tìm thấy user - Status 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{token_a}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/profiles/mylinh123/follow",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profiles",
+                "mylinh123",
                 "follow"
               ]
             }
